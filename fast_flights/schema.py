@@ -21,3 +21,7 @@ class Flight:
     stops: int
     delay: Optional[str]
     price: str
+    airline_icon_url: Optional[str]
+    from_airport: str
+    to_airport: str
+    url: str

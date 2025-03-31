@@ -23,42 +23,37 @@ def result_to_dict(result):
 
 def main():
     # Argument parser for command-line input
-    parser = argparse.ArgumentParser(description="Flight Price Finder")
-    parser.add_argument('--origin', required=True, help="Origin airport code")
-    parser.add_argument('--destination', required=True, help="Destination airport code")
-    parser.add_argument('--depart_date', required=True, help="Beginning trip date (YYYY-MM-DD)")
-    parser.add_argument('--return_date', required=True, help="Ending trip date (YYYY-MM-DD)")
-    parser.add_argument('--adults', type=int, default=1, help="Number of adult passengers")
-    parser.add_argument('--type', type=str, default="economy", help="Fare class (economy, premium-economy, business or first)")
-    parser.add_argument('--max_stops', type=int, help="Maximum number of stops (optional, [0|1|2])")
-    parser.add_argument('--inject_eu_cookies', action=argparse.BooleanOptionalAction, help="Cookies to bypass EU data collection form")
+    # parser = argparse.ArgumentParser(description="Flight Price Finder")
+    # parser.add_argument('--origin', required=True, help="Origin airport code")
+    # parser.add_argument('--destination', required=True, help="Destination airport code")
+    # parser.add_argument('--depart_date', required=True, help="Beginning trip date (YYYY-MM-DD)")
+    # parser.add_argument('--return_date', required=True, help="Ending trip date (YYYY-MM-DD)")
+    # parser.add_argument('--adults', type=int, default=1, help="Number of adult passengers")
+    # parser.add_argument('--type', type=str, default="economy", help="Fare class (economy, premium-economy, business or first)")
+    # parser.add_argument('--max_stops', type=int, help="Maximum number of stops (optional, [0|1|2])")
+    # parser.add_argument('--inject_eu_cookies', action=argparse.BooleanOptionalAction, help="Cookies to bypass EU data collection form")
 
 
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
     # Create a new filter
     filter = create_filter(
         flight_data=[
             FlightData(
-                date=args.depart_date,  # Date of departure for outbound flight
-                from_airport=args.origin,
-                to_airport=args.destination
-            ),
-            FlightData(
-                date=args.return_date,  # Date of departure for return flight
-                from_airport=args.destination,
-                to_airport=args.origin
-            ),
+                date="2025-04-01",  # Date of departure for outbound flight
+                from_airport="YUL",
+                to_airport="MIA"
+            )
         ],
-        trip="round-trip",  # Trip (round-trip, one-way)
-        seat=args.type,  # Seat (economy, premium-economy, business or first)
+        trip="one-way",  # Trip (round-trip, one-way)
+        seat="economy",  # Seat (economy, premium-economy, business or first)
         passengers=Passengers(
-            adults=args.adults,
+            adults=1,
             children=0,
             infants_in_seat=0,
             infants_on_lap=0
         ),
-        max_stops=args.max_stops
+        max_stops=2
     )
 
     b64 = filter.as_b64().decode('utf-8')
@@ -67,9 +62,24 @@ def main():
     )
 
     # Get flights with the filter
-    result = get_flights(filter,
-                         inject_eu_cookies=args.inject_eu_cookies
-                         )
+    result = get_flights(
+        flight_data=[
+            FlightData(
+                date="2025-04-03", 
+                from_airport="YUL", 
+                to_airport="FLL"
+            )
+        ],
+        trip="round-trip",
+        seat="economy",
+        passengers=Passengers(
+            adults=1, 
+            children=0,
+            infants_in_seat=0, 
+            infants_on_lap=0
+        ),
+        currency="CAD"
+    )
 
     try:
         # Manually convert the result to a dictionary before serialization

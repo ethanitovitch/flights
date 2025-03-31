@@ -1,3 +1,4 @@
+import re
 from typing import List, Literal, Optional
 
 from selectolax.lexbor import LexborHTMLParser, LexborNode
@@ -64,6 +65,7 @@ def get_flights(
     seat: Literal["economy", "premium-economy", "business", "first"],
     fetch_mode: Literal["common", "fallback", "force-fallback", "local"] = "common",
     max_stops: Optional[int] = None,
+    currency: str = "",
 ) -> Result:
     return get_flights_from_filter(
         TFSData.from_interface(
@@ -74,6 +76,7 @@ def get_flights(
             max_stops=max_stops,
         ),
         mode=fetch_mode,
+        currency=currency,
     )
 
 
@@ -131,6 +134,18 @@ def parse_response(
             # Get prices
             price = safe(item.css_first(".YMlIz.FpEdX")).text() or "0"
 
+            from_airport = safe(item.css_first(".G2WY5c.sSHqwe")).text()
+            to_airport = safe(item.css_first(".c8rWCd.sSHqwe")).text()
+
+            # Get airline icon
+            airline_icon = safe(item.css_first(".EbY4Pc.P2UJoe"))
+            style_attr = airline_icon.attrs.get('style', '')
+            url_match = re.search(r'url\((.*?)\)', style_attr)
+            if url_match:
+                airline_icon_url = url_match.group(1) 
+            else:
+                airline_icon_url = None
+
             # Stops formatting
             try:
                 stops_fmt = 0 if stops == "Nonstop" else int(stops.split(" ", 1)[0])
@@ -148,6 +163,10 @@ def parse_response(
                     "stops": stops_fmt,
                     "delay": delay,
                     "price": price.replace(",", ""),
+                    "airline_icon_url": airline_icon_url,
+                    "from_airport": from_airport,
+                    "to_airport": to_airport,
+                    "url": r.url,
                 }
             )
 
